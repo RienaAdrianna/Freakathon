@@ -17,7 +17,7 @@ class Category(db.Model):
         return f'<Category {self.category_name}>'
 
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def index():
     return render_template('index.html') #master page
 
