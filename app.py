@@ -3,6 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 app = Flask(__name__)
+# Add Database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'
+
 
 
 
