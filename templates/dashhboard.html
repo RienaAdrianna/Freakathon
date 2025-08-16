@@ -1,0 +1,593 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .header h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #1a3d0a;
+        margin-bottom: 0.5rem;
+    }
+
+    .header p {
+        font-size: 1.2rem;
+        color: #4a6741;
+    }
+
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+        gap: 1rem;
+        color: #4a6741;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e8f5e8;
+        border-top: 2px solid #10b981;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #10b981;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card.warning {
+        border-left-color: #f59e0b;
+    }
+
+    .stat-card.danger {
+        border-left-color: #ef4444;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .stat-title {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1a3d0a;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .section-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a3d0a;
+    }
+
+    .alert-item {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .alert-item.warning {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+    }
+
+    .alert-item.danger {
+        background: #fecaca;
+        border-left: 4px solid #ef4444;
+    }
+
+    .grocery-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .grocery-item:last-child {
+        border-bottom: none;
+    }
+
+    .grocery-info h4 {
+        font-weight: 600;
+        color: #1a3d0a;
+        margin-bottom: 0.25rem;
+    }
+
+    .grocery-info p {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .badge.fruits { background: #fef3c7; color: #92400e; }
+    .badge.vegetables { background: #dcfce7; color: #166534; }
+    .badge.dairy { background: #dbeafe; color: #1e40af; }
+    .badge.meat { background: #fecaca; color: #991b1b; }
+    .badge.pantry { background: #f3e8ff; color: #7c2d12; }
+
+    .recipe-card {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .recipe-card:hover {
+        background: #f9fafb;
+    }
+
+    .recipe-card:last-child {
+        border-bottom: none;
+    }
+
+    .recipe-card h4 {
+        font-weight: 600;
+        color: #1a3d0a;
+        margin-bottom: 0.5rem;
+    }
+
+    .recipe-ingredients {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6b7280;
+        padding: 2rem;
+    }
+
+    .refresh-btn {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+
+    .refresh-btn:hover {
+        background: #059669;
+    }
+
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <span>Loading your fresh groceries...</span>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <h1 id="welcome-text">Welcome back! 🌱</h1>
+            <p>Keep your groceries fresh and discover amazing recipes</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <span class="stat-title">Total Items</span>
+                </div>
+                <div class="stat-value" id="total-items">0</div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <span class="stat-title">Expiring Soon</span>
+                </div>
+                <div class="stat-value" id="expiring-count">0</div>
+            </div>
+
+            <div class="stat-card danger">
+                <div class="stat-header">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="stat-title">Expired</span>
+                </div>
+                <div class="stat-value" id="expired-count">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0h2m-2 0v4a2 2 0 002 2h2a2 2 0 002-2v-4m0 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v6z"/>
+                    </svg>
+                    <span class="stat-title">Categories</span>
+                </div>
+                <div class="stat-value" id="categories-count">0</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <div class="main-content">
+                <!-- Expiry Alerts -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-header-left">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 7H4l5-5v5z"/>
+                            </svg>
+                            <h2 class="section-title">Expiry Alerts</h2>
+                        </div>
+                    </div>
+                    <div id="alerts-container">
+                        <div class="no-data">All your groceries are fresh! 🌿</div>
+                    </div>
+                </div>
+
+                <!-- Recent Groceries -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-header-left">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                            <h2 class="section-title">Recent Groceries</h2>
+                        </div>
+                        <button class="refresh-btn" onclick="loadDashboardData()">Refresh</button>
+                    </div>
+                    <div id="groceries-container">
+                        <div class="no-data">No groceries found</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-header-left">
+                            <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                            <h2 class="section-title">Suggested Recipes</h2>
+                        </div>
+                    </div>
+                    <div id="recipes-container">
+                        <div class="no-data">Loading recipes...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let groceries = [];
+    let recipes = [];
+    let user = null;
+    let reminderDays = 3;
+
+    // Load dashboard data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+        try {
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+
+            // Make API calls to your Flask backend
+            const [groceryResponse, recipeResponse, userResponse] = await Promise.all([
+                fetch('/api/groceries'),
+                fetch('/api/recipes'),
+                fetch('/api/user/me').catch(() => null)
+            ]);
+
+            // Parse responses
+            groceries = await groceryResponse.json();
+            recipes = await recipeResponse.json();
+            
+            if (userResponse && userResponse.ok) {
+                user = await userResponse.json();
+                updateWelcomeMessage();
+            }
+
+            // Filter out consumed groceries
+            groceries = groceries.filter(g => !g.is_consumed);
+
+            // Update UI
+            updateStats();
+            updateAlerts();
+            updateGroceries();
+            updateRecipes();
+
+            // Hide loading and show dashboard
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+            // Show error message or use dummy data for testing
+            loadDummyData();
+        }
+    }
+
+    function updateWelcomeMessage() {
+        if (user && user.full_name) {
+            const firstName = user.full_name.split(' ')[0];
+            document.getElementById('welcome-text').textContent = `Welcome back, ${firstName}! 🌱`;
+        }
+    }
+
+    function updateStats() {
+        const expiringItems = getExpiringItems();
+        const expiredItems = getExpiredItems();
+        const categoryStats = getStatsByCategory();
+
+        document.getElementById('total-items').textContent = groceries.length;
+        document.getElementById('expiring-count').textContent = expiringItems.length;
+        document.getElementById('expired-count').textContent = expiredItems.length;
+        document.getElementById('categories-count').textContent = Object.keys(categoryStats).length;
+    }
+
+    function updateAlerts() {
+        const container = document.getElementById('alerts-container');
+        const expiringItems = getExpiringItems();
+        const expiredItems = getExpiredItems();
+
+        if (expiringItems.length === 0 && expiredItems.length === 0) {
+            container.innerHTML = '<div class="no-data">All your groceries are fresh! 🌿</div>';
+            return;
+        }
+
+        let alertsHTML = '';
+
+        // Add expired items
+        expiredItems.forEach(item => {
+            alertsHTML += `
+                <div class="alert-item danger">
+                    <div>
+                        <strong>${item.name}</strong>
+                        <p>Expired ${getDaysAgo(item.expiry_date)} ago</p>
+                    </div>
+                    <span class="badge ${item.category}">${item.category}</span>
+                </div>
+            `;
+        });
+
+        // Add expiring items
+        expiringItems.forEach(item => {
+            alertsHTML += `
+                <div class="alert-item warning">
+                    <div>
+                        <strong>${item.name}</strong>
+                        <p>Expires in ${getDaysUntilExpiry(item.expiry_date)} days</p>
+                    </div>
+                    <span class="badge ${item.category}">${item.category}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = alertsHTML;
+    }
+
+    function updateGroceries() {
+        const container = document.getElementById('groceries-container');
+        
+        if (groceries.length === 0) {
+            container.innerHTML = '<div class="no-data">No groceries found</div>';
+            return;
+        }
+
+        let groceriesHTML = '';
+        groceries.slice(0, 6).forEach(item => {
+            groceriesHTML += `
+                <div class="grocery-item">
+                    <div class="grocery-info">
+                        <h4>${item.name}</h4>
+                        <p>Expires: ${formatDate(item.expiry_date)} • Quantity: ${item.quantity}</p>
+                    </div>
+                    <span class="badge ${item.category}">${item.category}</span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = groceriesHTML;
+    }
+
+    function updateRecipes() {
+        const container = document.getElementById('recipes-container');
+        
+        if (recipes.length === 0) {
+            container.innerHTML = '<div class="no-data">No recipes available</div>';
+            return;
+        }
+
+        let recipesHTML = '';
+        recipes.slice(0, 6).forEach(recipe => {
+            recipesHTML += `
+                <div class="recipe-card">
+                    <h4>${recipe.name}</h4>
+                    <div class="recipe-ingredients">${recipe.ingredients || 'Click to view ingredients'}</div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = recipesHTML;
+    }
+
+    // Helper functions
+    function getExpiringItems() {
+        const today = new Date();
+        return groceries.filter(grocery => {
+            const expiryDate = new Date(grocery.expiry_date);
+            const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+            return daysUntilExpiry <= reminderDays && daysUntilExpiry >= 0;
+        });
+    }
+
+    function getExpiredItems() {
+        const today = new Date();
+        return groceries.filter(grocery => {
+            const expiryDate = new Date(grocery.expiry_date);
+            return expiryDate < today;
+        });
+    }
+
+    function getStatsByCategory() {
+        return groceries.reduce((acc, grocery) => {
+            acc[grocery.category] = (acc[grocery.category] || 0) + 1;
+            return acc;
+        }, {});
+    }
+
+    function getDaysUntilExpiry(expiryDate) {
+        const today = new Date();
+        const expiry = new Date(expiryDate);
+        return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function getDaysAgo(expiryDate) {
+        const today = new Date();
+        const expiry = new Date(expiryDate);
+        return Math.ceil((today - expiry) / (1000 * 60 * 60 * 24));
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString();
+    }
+
+    // Dummy data for testing (remove when you have real API)
+    function loadDummyData() {
+        groceries = [
+            { id: 1, name: "Bananas", category: "fruits", quantity: 6, expiry_date: "2025-08-18", is_consumed: false },
+            { id: 2, name: "Milk", category: "dairy", quantity: 1, expiry_date: "2025-08-20", is_consumed: false },
+            { id: 3, name: "Bread", category: "pantry", quantity: 1, expiry_date: "2025-08-17", is_consumed: false }
+        ];
+
+        recipes = [
+            { id: 1, name: "Banana Smoothie", ingredients: "Bananas, Milk, Honey" },
+            { id: 2, name: "French Toast", ingredients: "Bread, Eggs, Milk" }
+        ];
+
+        user = { full_name: "John Doe" };
+
+        updateWelcomeMessage();
+        updateStats();
+        updateAlerts();
+        updateGroceries();
+        updateRecipes();
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+</script>
+{% endblock %}
