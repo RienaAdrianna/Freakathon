@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FreshTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-sage-50">
+
+<style>
+:root {
+    --sage-50: #f6f7f6;
+    --sage-100: #e8ebe8;
+    --sage-200: #d1d7d1;
+    --sage-300: #aab5aa;
+    --sage-400: #7d917d;
+    --sage-500: #5a6e5a;
+    --sage-600: #485748;
+    --sage-700: #3c473c;
+    --sage-800: #333a33;
+    --sage-900: #2b312b;
+    --emerald-50: #ecfdf5;
+    --emerald-100: #d1fae5;
+    --emerald-500: #10b981;
+    --emerald-600: #059669;
+}
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+.sidebar {
+    width: 250px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    border-right: 1px solid var(--sage-200);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-header {
+    border-bottom: 1px solid var(--sage-100);
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.sidebar-logo {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(to bottom right, var(--emerald-500), var(--sage-600));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.sidebar-title {
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: var(--sage-800);
+}
+.sidebar-subtitle {
+    font-size: 0.85rem;
+    color: var(--sage-500);
+}
+.sidebar-menu {
+    list-style: none;
+    padding: 1rem;
+    margin: 0;
+}
+.sidebar-menu li {
+    margin-bottom: 0.5rem;
+}
+.sidebar-menu a {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--sage-600);
+    transition: all 0.3s ease;
+}
+.sidebar-menu a:hover {
+    background: var(--emerald-50);
+    color: var(--emerald-700);
+}
+.sidebar-menu a.active {
+    background: linear-gradient(to right, var(--emerald-100), var(--sage-100));
+    color: var(--emerald-700);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+main {
+    flex: 1;
+    padding: 2rem;
+}
+.layout {
+    display: flex;
+}
+</style>
+
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                🍏
+            </div>
+            <div>
+                <div class="sidebar-title">FreshTrack</div>
+                <div class="sidebar-subtitle">Smart Grocery Manager</div>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/" class="{% if active_page == 'Dashboard' %}active{% endif %}">🏠 Dashboard</a></li>
+            <li><a href="/add-grocery" class="{% if active_page == 'Add Grocery' %}active{% endif %}">➕ Add Grocery</a></li>
+            <li><a href="/recipes" class="{% if active_page == 'Recipes' %}active{% endif %}">👨‍🍳 Recipes</a></li>
+            <li><a href="/settings" class="{% if active_page == 'Settings' %}active{% endif %}">⚙ Settings</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        <h1>Welcome to FreshTrack!</h1>
+        {% endblock %}
+    </main>
+</div>
+
+</body>
+</html>
