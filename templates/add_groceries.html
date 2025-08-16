@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="p-6 md:p-8 max-w-4xl mx-auto">
+  <!-- Back to Dashboard -->
+  <div class="mb-8">
+    <a href="{{ url_for('dashboard') }}" class="inline-flex items-center gap-2 text-sage-600 hover:text-sage-800 transition-colors mb-4">
+      <!-- Replace with a real icon if using lucide or similar -->
+      <span class="w-4 h-4">←</span>
+      Back to Dashboard
+    </a>
+    <h1 class="text-3xl md:text-4xl font-bold text-sage-800 mb-2">Add New Grocery</h1>
+    <p class="text-sage-600">Keep track of your fresh items and never let them expire</p>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-8">
+    <!-- Form Section -->
+    <div class="lg:col-span-2">
+      <div class="shadow-xl border-0 bg-white/80 backdrop-blur-sm rounded-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-50 to-sage-50 px-6 py-4">
+          <h2 class="flex items-center gap-2 text-sage-800 font-semibold">
+            <span class="w-5 h-5">＋</span>
+            Grocery Details
+          </h2>
+        </div>
+        <div class="p-8">
+          <form method="POST" action="{{ url_for('add_grocery') }}" class="space-y-6">
+            <!-- CSRF Token if using Flask-WTF -->
+            {{ form.hidden_tag() }}
+
+            <!-- Name and Category -->
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label for="name" class="text-sage-700 font-medium">Grocery Name *</label>
+                <input type="text" id="name" name="name" required
+                  placeholder="e.g. Organic Apples"
+                  class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400 focus:ring-emerald-400"/>
+              </div>
+
+              <div class="space-y-2">
+                <label for="category" class="text-sage-700 font-medium">Category</label>
+                <select id="category" name="category" class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400">
+                  {% for cat in categories %}
+                    <option value="{{ cat.value }}">{{ cat.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label for="purchase_date" class="text-sage-700 font-medium">Purchase Date</label>
+                <input type="date" id="purchase_date" name="purchase_date"
+                  value="{{ today }}" 
+                  class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400"/>
+              </div>
+
+              <div class="space-y-2">
+                <label for="expiry_date" class="text-sage-700 font-medium">Expiry Date *</label>
+                <input type="date" id="expiry_date" name="expiry_date" required
+                  class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400"/>
+              </div>
+            </div>
+
+            <!-- Quantity and Unit -->
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label for="quantity" class="text-sage-700 font-medium">Quantity</label>
+                <input type="number" id="quantity" name="quantity" step="0.1" min="0.1" value="1"
+                  class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400"/>
+              </div>
+              <div class="space-y-2">
+                <label for="unit" class="text-sage-700 font-medium">Unit</label>
+                <select id="unit" name="unit" class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400">
+                  {% for unit in units %}
+                    <option value="{{ unit }}">{{ unit }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="space-y-2">
+              <label for="location" class="text-sage-700 font-medium">Storage Location</label>
+              <select id="location" name="location" class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400">
+                {% for loc in locations %}
+                  <option value="{{ loc }}">{{ loc|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div class="space-y-2">
+              <label for="notes" class="text-sage-700 font-medium">Notes (Optional)</label>
+              <textarea id="notes" name="notes" rows="3"
+                placeholder="Any additional notes about this item..."
+                class="w-full border border-sage-200 rounded-md px-3 py-2 focus:border-emerald-400"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+              class="w-full bg-gradient-to-r from-emerald-500 to-sage-500 hover:from-emerald-600 hover:to-sage-600 text-white font-medium py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+              ＋ Add Grocery
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Section -->
+    <div class="space-y-6">
+      {% if recently_added %}
+      <div class="shadow-lg border-0 bg-gradient-to-br from-emerald-50 to-sage-50 rounded-lg">
+        <div class="px-6 py-4">
+          <h3 class="text-sage-800 text-lg font-semibold">Recently Added</h3>
+        </div>
+        <div class="px-6 pb-6 space-y-3">
+          {% for item in recently_added %}
+          <div class="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm">
+            <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+              📅
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-sage-800 truncate">{{ item.name }}</p>
+              <span class="text-xs px-2 py-1 rounded {{ categories[item.category].color }}">
+                {{ categories[item.category].label }}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Tips -->
+      <div class="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
+        <div class="px-6 py-4">
+          <h3 class="text-indigo-800 text-lg font-semibold">💡 Quick Tips</h3>
+        </div>
+        <div class="px-6 pb-6">
+          <ul class="space-y-2 text-sm text-indigo-700">
+            <li>• Categories auto-suggest expiry dates</li>
+            <li>• Set reminders in Settings</li>
+            <li>• Store items in appropriate locations</li>
+            <li>• Add notes for special storage instructions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
