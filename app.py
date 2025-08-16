@@ -9,6 +9,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'
 
 
 
+
 @app.route('/')
 def index():
     return render_template('index.html') #master page
